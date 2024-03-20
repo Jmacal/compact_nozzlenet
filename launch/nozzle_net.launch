@@ -1,0 +1,6 @@
+<!-- nozzle_net.launch -->
+
+<launch>
+    <!-- Launch the NozzleNet node -->
+    <node name="nozzle_net_node" pkg="nozzle_net_pkg" type="nozzle_net_node.py" />
+</launch>
