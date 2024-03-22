@@ -3,7 +3,7 @@
 import os
 import rospy
 from sensor_msgs.msg import CompressedImage
-from nozzle_net.msg import NozzleStatus  # Custom message type
+from nozzle_net_pkg.msg import NozzleStatus  # Custom message type
 import cv2
 import numpy as np
 import onnxruntime
