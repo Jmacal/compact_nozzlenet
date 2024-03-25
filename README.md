@@ -1,5 +1,5 @@
 
-# NozzleNet ROS Package
+# Compact NozzleNet ROS Package
 
 The NozzleNet ROS package is designed to enhance robotic systems with the ability to monitor and detect the status of a nozzle in real-time. Using a pre-trained ResNet50 model, this package accurately assesses whether a nozzle is blocked, clear, or requires checking, integrating seamlessly with ROS-based robotic applications.
 
