@@ -28,7 +28,7 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
    Clone into your ROS workspace's `src` directory.
    ```bash
    cd /path/to/your/catkin_workspace/src
-   git clone https://github.com/BucherMunicipal/nozzle_net_pkg
+   git clone https://github.com/BucherMunicipal/compact_nozzle_net_pkg
    ```
 
 2. **Install Python Dependencies**:
