@@ -1,7 +1,0 @@
-opencv-python
-numpy
-onnxruntime
-torchvision
-Pillow
-pyyaml
-rospkg
