@@ -69,10 +69,6 @@ For behavior adjustments, edit `nozzle_net_node.py`. Familiarity with ROS and Py
 
 A pre-trained ResNet50 model is pivotal for analysis. Ensure the model is correctly positioned as per `nozzle_config.yaml`. Assistance with model setup is available upon request.
 
-## License
-
-MIT License.
-
 ## Contact
 
 James MacAleese, james.macaleese@buchermunicipal.net.
