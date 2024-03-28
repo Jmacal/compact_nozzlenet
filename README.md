@@ -54,8 +54,21 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 2. **Launch NozzleNet Node**:
    To begin image processing and status publication.
    ```bash
-   roslaunch nozzle_net_pkg nozzle_net.launch
+   roslaunch compact_nozzle_net_pkg nozzle_net.launch model_name:=model_name.onnx
+
    ```
+   If no model is specified, resnet50_v0.onnx is used.
+
+## Models
+
+**resnet50_v0.onnx**
+Original model, trained on full dataset with removed similar frames.
+
+**resnet50_v1.onnx**
+Trained on full dataset, no deleted frames.
+
+**resnet50_v2.onnx** 
+Trained on full dataset, no deleted frames, additional transformations including colour transform.
 
 ## Configuration
 

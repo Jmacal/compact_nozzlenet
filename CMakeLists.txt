@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(nozzle_net_pkg)
+project(compact_nozzle_net_pkg)
 
 find_package(catkin REQUIRED COMPONENTS
   rospy

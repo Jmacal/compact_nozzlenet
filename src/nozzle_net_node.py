@@ -3,7 +3,7 @@
 import os
 import rospy
 from sensor_msgs.msg import CompressedImage
-from nozzle_net_pkg.msg import NozzleStatus  # Custom message type
+from compact_nozzle_net_pkg.msg import NozzleStatus  # Custom message type
 import cv2
 import numpy as np
 import onnxruntime
@@ -16,9 +16,17 @@ class NozzleNet:
     def __init__(self):
         try:
             self.load_config()  # Load configuration settings
-            # Initialize ONNX model with the adjusted model path
-            model_path = os.path.join(rospkg.RosPack().get_path('nozzle_net_pkg'), self.config['model_path'])
-            self.model = onnxruntime.InferenceSession(model_path)
+
+            # Retrieve model name from ROS parameter server, set by the launch file
+            model_name = rospy.get_param('~model_name', 'resnet50_v0.onnx')
+            
+            # Construct the full model path using the retrieved model name
+            model_path = os.path.join(rospkg.RosPack().get_path('compact_nozzle_net_pkg'), 'model', model_name)
+
+            # Specify the CUDA execution provider
+            providers = ['CUDAExecutionProvider']
+            self.model = onnxruntime.InferenceSession(model_path, providers=providers)
+
         except (yaml.YAMLError, FileNotFoundError) as e:
             rospy.logerr("Failed to load configuration: {}".format(e))
             raise e
@@ -48,7 +56,7 @@ class NozzleNet:
         self.labels = ['check_nozzle', 'nozzle_blocked', 'nozzle_clear']
 
     def load_config(self):
-        package_path = rospkg.RosPack().get_path('nozzle_net_pkg')
+        package_path = rospkg.RosPack().get_path('compact_nozzle_net_pkg')
         config_file = os.path.join(package_path, 'config', 'nozzle_config.yaml')
         with open(config_file, 'r') as file:
             self.config = yaml.safe_load(file)

@@ -6,9 +6,6 @@ image_height: 224
 crop_top: 0
 crop_bottom: 110
 
-# Model settings
-model_path: model/resnet50.onnx
-
 # Normalization settings
 mean:
   - 0.485
