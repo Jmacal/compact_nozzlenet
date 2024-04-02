@@ -62,13 +62,16 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 ## Models
 
 **resnet50_v0.onnx**
-Original model, trained on full dataset with removed similar frames.
+Original model, trained on unique frames in dataset.
 
 **resnet50_v1.onnx**
 Trained on full dataset, no deleted frames.
 
 **resnet50_v2.onnx** 
 Trained on full dataset, no deleted frames, additional transformations including colour transform.
+
+**resnet50_v3.onnx** 
+Trained on unique frames in dataset, additional transformations including colour transform.
 
 ## Configuration
 
