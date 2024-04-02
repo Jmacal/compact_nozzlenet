@@ -31,6 +31,14 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
    git clone https://github.com/BucherMunicipal/compact_nozzle_net_pkg
    ```
 
+2. **Install onnxruntime_gpu**
+   Install latest onnxruntime_gpu pip wheel from https://elinux.org/Jetson_Zoo#ONNX_Runtime for your specific Python version and JetPack version.
+
+   The following is an example of how to install your downloaded pip wheel:
+   ```bash
+   pip3 install onnxruntime_gpu-1.16.0-cp38-cp38-linux_aarch64.whl
+   ```
+
 2. **Install Python Dependencies**:
    Inside the cloned directory, install dependencies.
    ```bash

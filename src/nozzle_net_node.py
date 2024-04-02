@@ -15,6 +15,7 @@ import rospkg  # Import rospkg module
 class NozzleNet:
     def __init__(self):
         try:
+
             self.load_config()  # Load configuration settings
 
             # Retrieve model name from ROS parameter server, set by the launch file
@@ -23,9 +24,8 @@ class NozzleNet:
             # Construct the full model path using the retrieved model name
             model_path = os.path.join(rospkg.RosPack().get_path('compact_nozzle_net_pkg'), 'model', model_name)
 
-            # Specify the CUDA execution provider
-            providers = ['CUDAExecutionProvider']
-            self.model = onnxruntime.InferenceSession(model_path, providers=providers)
+            # Load the ONNX model
+            self.model = onnxruntime.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
 
         except (yaml.YAMLError, FileNotFoundError) as e:
             rospy.logerr("Failed to load configuration: {}".format(e))
