@@ -37,7 +37,7 @@ class NozzleNet:
         try:
             # Define image transformations
             self.transform = transforms.Compose([
-                transforms.Resize((self.config['image_height'], self.config['image_width'])),
+                transforms.Resize(self.config['image_width']),
                 transforms.Lambda(lambda x: transforms.functional.crop(x, self.config['crop_top'], self.config['crop_bottom'], self.config['image_width'], self.config['image_height'])),  # Adjusted crop transformation
                 transforms.ToTensor(),
                 transforms.Normalize(mean=self.config['mean'], std=self.config['std'])
