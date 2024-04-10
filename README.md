@@ -62,46 +62,46 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 
 ## Models
 
-**resnet50_v0.onnx**
+**resnet50_v0**
 ResNet50, Original model, trained on unique frames in dataset.
 
-**resnet50_v1.onnx**
+**resnet50_v1**
 ResNet50, Trained on full dataset, no deleted frames.
 
-**resnet50_v2.onnx** 
+**resnet50_v2** 
 ResNet50, Trained on full dataset, no deleted frames, additional transformations including colour transform.
 
-**resnet50_v3.onnx** 
+**resnet50_v3** 
 ResNet50, Trained on unique frames in dataset, additional transformations including colour transform.
 
-**resnet50_v4.onnx** 
+**resnet50_v4** 
 ResNet50, Trained on unique frames in dataset, colour transform, improved normalisation values, increased cropping.
 
-**resnet50_v5.onnx** 
+**resnet50_v5** 
 ResNet50, Trained on full dataset, no deleted frames, colour transform, improved normalisation values, increased cropping.
 
-**resnet50_v6.onnx** 
+**resnet50_v6** 
 ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
 
-**resnet50_v7.onnx** 
+**resnet50_v7** 
 ResNet50, Trained on unique frames in dataset, no colour transform, improved normalisation values, increased cropping.
 
-**resnet50_v8.onnx** 
+**resnet50_v8** 
 ResNet50, Trained on unique frames in dataset, high hue colour transform, improved normalisation values, increased cropping, increased epochs.
 
-**resnet18_v0.onnx** 
+**resnet18_v0** 
 ResNet18, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
 
-**resnet18_v1.onnx** 
+**resnet18_v1** 
 ResNet18, Trained on unique frames in dataset, no colour transform, improved normalisation values, increased cropping.
 
-**resnet18_v2.onnx** 
+**resnet18_v2** 
 ResNet18, Trained on full dataset, no deleted frames, colour transform, improved normalisation values, increased cropping.
 
-**resnet18_v3.onnx** 
+**resnet18_v3** 
 ResNet18, Trained on unique frames in dataset, colour transform, improved normalisation values, increased cropping.
 
-**resnet18_v4.onnx** 
+**resnet18_v4** 
 ResNet18, Trained on unique frames in dataset, high hue colour transform, improved normalisation values, increased cropping, increased epochs.
 
 ## Contact
