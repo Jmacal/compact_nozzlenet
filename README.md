@@ -1,7 +1,7 @@
 
 # Compact NozzleNet ROS Package
 
-The NozzleNet ROS package is designed to enhance robotic systems with the ability to monitor and detect the status of a nozzle in real-time. Using a pre-trained ResNet50 model, this package accurately assesses whether a nozzle is blocked, clear, or requires checking, integrating seamlessly with ROS-based robotic applications.
+The NozzleNet ROS package is designed to enhance robotic systems with the ability to monitor and detect the status of a nozzle in real-time. Using a pre-trained ResNet model, this package accurately assesses whether a nozzle is blocked, clear, or requires checking, integrating seamlessly with ROS-based robotic applications.
 
 ## Features
 
@@ -20,7 +20,7 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 ## Prerequisites
 
 - **ROS Environment**: Tested on ROS Kinetic and newer, including Noetic, with Python 3.5+ compatibility.
-- **Python Dependencies**: OpenCV, NumPy, ONNX Runtime, TorchVision, Pillow. Install via `requirements.txt`.
+- **Python Dependencies**: OpenCV, NumPy, TorchVision, Pillow, etc. Install via `requirements.txt`.
 
 ## Installation
 
@@ -29,14 +29,6 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
    ```bash
    cd /path/to/your/catkin_workspace/src
    git clone https://github.com/BucherMunicipal/compact_nozzle_net_pkg
-   ```
-
-2. **Install onnxruntime_gpu**
-   Install latest onnxruntime_gpu pip wheel from https://elinux.org/Jetson_Zoo#ONNX_Runtime for your specific Python version and JetPack version.
-
-   The following is an example of how to install your downloaded pip wheel:
-   ```bash
-   pip3 install onnxruntime_gpu-1.16.0-cp38-cp38-linux_aarch64.whl
    ```
 
 2. **Install Python Dependencies**:
@@ -62,36 +54,55 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 2. **Launch NozzleNet Node**:
    To begin image processing and status publication.
    ```bash
-   roslaunch compact_nozzle_net_pkg nozzle_net.launch model_name:=model_name.onnx
+   roslaunch compact_nozzle_net_pkg nozzle_net.launch model_name:=model_name
 
    ```
-   If no model is specified, resnet50_v0.onnx is used.
+   Examples of model_name include: resnet18_v0, resnet18_v1, resnet50_v0, resnet50_v7, ...
+   If no model is specified, model_name resnet50_v0 is used which points to resnet50_v0.onnx.1.1.8502.GPU.FP16.engine .
 
 ## Models
 
 **resnet50_v0.onnx**
-Original model, trained on unique frames in dataset.
+ResNet50, Original model, trained on unique frames in dataset.
 
 **resnet50_v1.onnx**
-Trained on full dataset, no deleted frames.
+ResNet50, Trained on full dataset, no deleted frames.
 
 **resnet50_v2.onnx** 
-Trained on full dataset, no deleted frames, additional transformations including colour transform.
+ResNet50, Trained on full dataset, no deleted frames, additional transformations including colour transform.
 
 **resnet50_v3.onnx** 
-Trained on unique frames in dataset, additional transformations including colour transform.
+ResNet50, Trained on unique frames in dataset, additional transformations including colour transform.
 
-## Configuration
+**resnet50_v4.onnx** 
+ResNet50, Trained on unique frames in dataset, colour transform, improved normalisation values, increased cropping.
 
-Modify `nozzle_config.yaml` to adjust image dimensions, model paths, and more, tailoring the node to specific use cases.
+**resnet50_v5.onnx** 
+ResNet50, Trained on full dataset, no deleted frames, colour transform, improved normalisation values, increased cropping.
 
-## Customization
+**resnet50_v6.onnx** 
+ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
 
-For behavior adjustments, edit `nozzle_net_node.py`. Familiarity with ROS and Python is recommended to ensure modifications enhance functionality.
+**resnet50_v7.onnx** 
+ResNet50, Trained on unique frames in dataset, no colour transform, improved normalisation values, increased cropping.
 
-## Model Details
+**resnet50_v8.onnx** 
+ResNet50, Trained on unique frames in dataset, high hue colour transform, improved normalisation values, increased cropping, increased epochs.
 
-A pre-trained ResNet50 model is pivotal for analysis. Ensure the model is correctly positioned as per `nozzle_config.yaml`. Assistance with model setup is available upon request.
+**resnet18_v0.onnx** 
+ResNet18, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
+
+**resnet18_v1.onnx** 
+ResNet18, Trained on unique frames in dataset, no colour transform, improved normalisation values, increased cropping.
+
+**resnet18_v2.onnx** 
+ResNet18, Trained on full dataset, no deleted frames, colour transform, improved normalisation values, increased cropping.
+
+**resnet18_v3.onnx** 
+ResNet18, Trained on unique frames in dataset, colour transform, improved normalisation values, increased cropping.
+
+**resnet18_v4.onnx** 
+ResNet18, Trained on unique frames in dataset, high hue colour transform, improved normalisation values, increased cropping, increased epochs.
 
 ## Contact
 
