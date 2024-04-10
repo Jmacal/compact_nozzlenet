@@ -39,7 +39,7 @@ class NozzleNet:
                     transforms.Resize((224, 224)),
                     transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adjusted crop transformation
                     transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
                 ])
             else:
                 # Define image transformations
@@ -47,7 +47,7 @@ class NozzleNet:
                     transforms.Resize(224),
                     transforms.Lambda(lambda x: transforms.functional.crop(x, 70, 105, 224, 224)),  # Adjusted crop transformation
                     transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.4387, 0.4716, 0.4956], std=[0.1933, 0.1992, 0.2179])
+                    transforms.Normalize(mean=[0.4387, 0.4716, 0.4956], std=[0.1933, 0.1992, 0.2179])  # Normalization
                 ])
 
         except Exception as e:
@@ -55,7 +55,7 @@ class NozzleNet:
             raise e
 
         # Initialize ROS publisher and subscriber
-        self.publisher = rospy.Publisher('/nozzle_status', NozzleStatus, queue_size=10)
+        self.publisher = rospy.Publisher('/nozzle_status', NozzleStatus, queue_size=0)
         rospy.Subscriber('/suction_camera/image_raw/compressed', CompressedImage, self.image_callback)
 
         self.latest_image = None
@@ -63,18 +63,46 @@ class NozzleNet:
         self.is_last_blocked = False
         self.labels = ['check_nozzle', 'nozzle_blocked', 'nozzle_clear']
 
+        # Allocate device memory for inputs and outputs
+        self.input_name = 'input_0'
+        self.output_name = 'output_0'
+        self.input_shape = (1, 3, 224, 224)
+        self.input_h = cuda.mem_alloc(self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3] * 4)
+        self.output_shape = (1, len(self.labels))
+        self.output_h = cuda.mem_alloc(self.output_shape[0] * self.output_shape[1] * 4)
+
+
+    def __del__(self):
+        # Cleanup CUDA memory allocations
+        self.release_cuda_memory()
+
+    def release_cuda_memory(self):
+        # Release CUDA memory allocations
+        try:
+            self.input_h.free()
+            self.output_h.free()
+        except Exception as e:
+            rospy.logerr("Failed to release CUDA memory: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
+
     def load_engine(self, model_path):
-        # Load and deserialize the TensorRT engine
-        with open(model_path, 'rb') as f, trt.Runtime(trt.Logger(trt.Logger.WARNING)) as runtime:
-            return runtime.deserialize_cuda_engine(f.read())
+        try:
+            # Load and deserialize the TensorRT engine
+            with open(model_path, 'rb') as f, trt.Runtime(trt.Logger(trt.Logger.WARNING)) as runtime:
+                return runtime.deserialize_cuda_engine(f.read())
+        except Exception as e:
+            rospy.logerr("Failed to load TensorRT engine from {}: {}".format(model_path, e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
+            raise e
 
     def image_callback(self, data):
         # Process image data from ROS topic
         try:
             np_arr = np.frombuffer(data.data, np.uint8)
             self.latest_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        except ValueError as e:
-            rospy.logwarn("Failed to decode image: {}".format(e))
+        except Exception as e:
+            rospy.logerr("Failed to decode image: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
 
     def process_latest_image(self):
         # Process the latest received image
@@ -87,23 +115,15 @@ class NozzleNet:
             transformed_img = self.transform(image_pil)
             transformed_img = transformed_img.unsqueeze(0)
 
-            # Allocate device memory for inputs and outputs
-            input_name = 'input_0'
-            output_name = 'output_0'
-            input_shape = (1, 3, 224, 224)
-            input_h = cuda.mem_alloc(input_shape[0] * input_shape[1] * input_shape[2] * input_shape[3] * 4)
-            output_shape = (1, len(self.labels))
-            output_h = cuda.mem_alloc(output_shape[0] * output_shape[1] * 4)
-
             # Transfer input data to device
-            cuda.memcpy_htod(input_h, transformed_img.numpy().tobytes())
+            cuda.memcpy_htod(self.input_h, transformed_img.numpy().tobytes())
 
             # Run inference
-            self.context.execute_v2(bindings=[int(input_h), int(output_h)])
+            self.context.execute_v2(bindings=[int(self.input_h), int(self.output_h)])
 
             # Transfer predictions back from device
-            output_data = np.zeros(output_shape, dtype=np.float32)
-            cuda.memcpy_dtoh(output_data, output_h)
+            output_data = np.zeros(self.output_shape, dtype=np.float32)
+            cuda.memcpy_dtoh(output_data, self.output_h)
 
             # Efficient handling of blocked status
             current_time = rospy.Time.now()
@@ -125,6 +145,7 @@ class NozzleNet:
 
         except Exception as e:
             rospy.logerr("Failed to process image: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
 
 if __name__ == '__main__':
     # Initialize ROS node and start processing
