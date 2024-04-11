@@ -36,7 +36,7 @@ class NozzleNet:
             if model_name in ['resnet50_v0', 'resnet50_v1', 'resnet50_v2', 'resnet50_v3']:
                 # Define image transformations
                 self.transform = transforms.Compose([
-                    transforms.Resize((224, 224)),
+                    transforms.Resize(224),
                     transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adjusted crop transformation
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
