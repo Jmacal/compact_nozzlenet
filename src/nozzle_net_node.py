@@ -3,43 +3,60 @@
 import os
 import rospy
 from sensor_msgs.msg import CompressedImage
-from nozzle_net_pkg.msg import NozzleStatus  # Custom message type
+from compact_nozzle_net_pkg.msg import NozzleStatus  # Custom message type
 import cv2
 import numpy as np
-import onnxruntime
 import torchvision.transforms as transforms
-from PIL import Image, UnidentifiedImageError
-import yaml  # Import YAML module for configuration loading
-import rospkg  # Import rospkg module
+from PIL import Image
+import rospkg 
+import tensorrt as trt
+import pycuda.driver as cuda
+import pycuda.autoinit
+import time
 
 class NozzleNet:
     def __init__(self):
         try:
-            self.load_config()  # Load configuration settings
-            # Initialize ONNX model with the adjusted model path
-            model_path = os.path.join(rospkg.RosPack().get_path('nozzle_net_pkg'), self.config['model_path'])
-            self.model = onnxruntime.InferenceSession(model_path)
-        except (yaml.YAMLError, FileNotFoundError) as e:
-            rospy.logerr("Failed to load configuration: {}".format(e))
-            raise e
-        except onnxruntime.OnnxRuntimeException as e:
-            rospy.logerr("Failed to load ONNX model: {}".format(e))
-            raise e
+            # Retrieve model name from ROS parameter server, set by the launch file
+            model_name = rospy.get_param('~model_name', 'resnet50_v3')
 
+            # Construct the full engine path using the retrieved engine name
+            model_path = os.path.join(rospkg.RosPack().get_path('compact_nozzle_net_pkg'), 'model', model_name + '.onnx.1.1.8502.GPU.FP16.engine')
+
+            # Load the TensorRT engine
+            self.engine = self.load_engine(model_path)
+            self.context = self.engine.create_execution_context()
+
+        except Exception as e:
+            rospy.logerr("Failed to load TensorRT engine: {}".format(e))
+            raise e
+   
         try:
-            # Define image transformations
-            self.transform = transforms.Compose([
-                transforms.Resize((self.config['image_height'], self.config['image_width'])),
-                transforms.Lambda(lambda x: transforms.functional.crop(x, self.config['crop_top'], self.config['crop_bottom'], self.config['image_width'], self.config['image_height'])),  # Adjusted crop transformation
-                transforms.ToTensor(),
-                transforms.Normalize(mean=self.config['mean'], std=self.config['std'])
-            ])
+            if model_name in ['resnet50_v3', 'resnet50_v3_v2']:
+                # Define image transformations
+                self.transform = transforms.Compose([
+                    transforms.Resize(224),
+                    transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adding crop transformation
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
+                ])
+            elif model_name in ['resnet50_v6','resnet50_v6_v2']:
+                # Define image transformations
+                self.transform = transforms.Compose([
+                    transforms.Resize(224),
+                    transforms.Lambda(lambda x: transforms.functional.crop(x, 70, 105, 224, 224)),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.4387, 0.4716, 0.4956], std=[0.1933, 0.1992, 0.2179])  # Normalization
+                ])
+            else:
+                raise ValueError("Invalid model name: {}".format(model_name))
+
         except Exception as e:
             rospy.logerr("Failed to define image transformations: {}".format(e))
             raise e
 
         # Initialize ROS publisher and subscriber
-        self.publisher = rospy.Publisher('/nozzle_status', NozzleStatus, queue_size=10)
+        self.publisher = rospy.Publisher('/nozzle_status', NozzleStatus, queue_size=0)
         rospy.Subscriber('/suction_camera/image_raw/compressed', CompressedImage, self.image_callback)
 
         self.latest_image = None
@@ -47,49 +64,92 @@ class NozzleNet:
         self.is_last_blocked = False
         self.labels = ['check_nozzle', 'nozzle_blocked', 'nozzle_clear']
 
-    def load_config(self):
-        package_path = rospkg.RosPack().get_path('nozzle_net_pkg')
-        config_file = os.path.join(package_path, 'config', 'nozzle_config.yaml')
-        with open(config_file, 'r') as file:
-            self.config = yaml.safe_load(file)
+        # Allocate device memory for inputs and outputs
+        self.input_name = 'input_0'
+        self.output_name = 'output_0'
+        self.input_shape = (1, 3, 224, 224)
+        self.input_h = cuda.mem_alloc(self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3] * 4)
+        self.output_shape = (1, len(self.labels))
+        self.output_h = cuda.mem_alloc(self.output_shape[0] * self.output_shape[1] * 4)
+
+
+    def __del__(self):
+        # Cleanup CUDA memory allocations
+        self.release_cuda_memory()
+
+    def release_cuda_memory(self):
+        # Release CUDA memory allocations
+        try:
+            self.input_h.free()
+            self.output_h.free()
+        except Exception as e:
+            rospy.logerr("Failed to release CUDA memory: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
+
+    def load_engine(self, model_path):
+        try:
+            # Load and deserialize the TensorRT engine
+            with open(model_path, 'rb') as f, trt.Runtime(trt.Logger(trt.Logger.WARNING)) as runtime:
+                return runtime.deserialize_cuda_engine(f.read())
+        except Exception as e:
+            rospy.logerr("Failed to load TensorRT engine from {}: {}".format(model_path, e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
+            raise e
 
     def image_callback(self, data):
+        # Process image data from ROS topic
         try:
             np_arr = np.frombuffer(data.data, np.uint8)
             self.latest_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-        except ValueError as e:
-            rospy.logwarn("Failed to decode image: {}".format(e))
+        except Exception as e:
+            rospy.logerr("Failed to decode image: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
 
     def process_latest_image(self):
+        # Process the latest received image
         if self.latest_image is None:
             return
 
         try:
+            # Convert image only once
             image_pil = Image.fromarray(cv2.cvtColor(self.latest_image, cv2.COLOR_BGR2RGB))
             transformed_img = self.transform(image_pil)
             transformed_img = transformed_img.unsqueeze(0)
 
-            input_name = self.model.get_inputs()[0].name
-            output_name = self.model.get_outputs()[0].name
-            pred = self.model.run([output_name], {input_name: transformed_img.numpy()})[0]
+            # Transfer input data to device
+            cuda.memcpy_htod(self.input_h, transformed_img.numpy().tobytes())
 
+            # Run inference
+            self.context.execute_v2(bindings=[int(self.input_h), int(self.output_h)])
+
+            # Transfer predictions back from device
+            output_data = np.zeros(self.output_shape, dtype=np.float32)
+            cuda.memcpy_dtoh(output_data, self.output_h)
+
+            # Efficient handling of blocked status
             current_time = rospy.Time.now()
-            if pred.argmax() == 1 and self.first_blocked_time is None:
+            is_blocked = np.argmax(output_data) == 1
+            if is_blocked and self.first_blocked_time is None:
                 self.first_blocked_time = current_time
-            elif pred.argmax() != 1:
+            elif not is_blocked:
                 self.first_blocked_time = None
 
+            # Only calculate duration when needed
             duration_blocked = (current_time - self.first_blocked_time).to_sec() if self.first_blocked_time else 0.0
 
+            # Construct message only when necessary
             nozzle_status = NozzleStatus()
-            nozzle_status.blocked_probability = pred[0][1]
+            nozzle_status.blocked_probability = output_data[0][1]
             nozzle_status.duration_blocked = duration_blocked
-            nozzle_status.prediction = self.labels[pred.argmax()]
+            nozzle_status.prediction = self.labels[np.argmax(output_data)]
             self.publisher.publish(nozzle_status)
+
         except Exception as e:
             rospy.logerr("Failed to process image: {}".format(e))
+            rospy.logerr(traceback.format_exc())  # Log traceback
 
 if __name__ == '__main__':
+    # Initialize ROS node and start processing
     rospy.init_node('nozzle_net')
     processor = NozzleNet()
     rate = rospy.Rate(10)  # Set the rate for the while loop
@@ -99,5 +159,3 @@ if __name__ == '__main__':
         except Exception as e:
             rospy.logerr("Error during image processing: {}".format(e))
         rate.sleep()
-
-   

@@ -1,7 +1,7 @@
 
 # Compact NozzleNet ROS Package
 
-The NozzleNet ROS package is designed to enhance robotic systems with the ability to monitor and detect the status of a nozzle in real-time. Using a pre-trained ResNet50 model, this package accurately assesses whether a nozzle is blocked, clear, or requires checking, integrating seamlessly with ROS-based robotic applications.
+The NozzleNet ROS package is designed to enhance robotic systems with the ability to monitor and detect the status of a nozzle in real-time. Using a pre-trained ResNet model, this package accurately assesses whether a nozzle is blocked, clear, or requires checking, integrating seamlessly with ROS-based robotic applications.
 
 ## Features
 
@@ -20,7 +20,7 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 ## Prerequisites
 
 - **ROS Environment**: Tested on ROS Kinetic and newer, including Noetic, with Python 3.5+ compatibility.
-- **Python Dependencies**: OpenCV, NumPy, ONNX Runtime, TorchVision, Pillow. Install via `requirements.txt`.
+- **Python Dependencies**: OpenCV, NumPy, TorchVision, Pillow, etc. Install via `requirements.txt`.
 
 ## Installation
 
@@ -54,20 +54,26 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
 2. **Launch NozzleNet Node**:
    To begin image processing and status publication.
    ```bash
-   roslaunch nozzle_net_pkg nozzle_net.launch
+   roslaunch compact_nozzle_net_pkg nozzle_net.launch model_name:=model_name
+
    ```
+   model_name options: resnet50_v3, resnet50_v3_v2, resnet50_v6, resnet50_v6_v2.
+   If no model is specified, model_name resnet50_v3 is used which points to resnet50_v3.onnx.1.1.8502.GPU.FP16.engine .
 
-## Configuration
+## Models
 
-Modify `nozzle_config.yaml` to adjust image dimensions, model paths, and more, tailoring the node to specific use cases.
+**resnet50_v3** 
+ResNet50, Trained on unique frames in dataset, additional transformations including colour transform.
 
-## Customization
+**resnet50_v3_v2** 
+ResNet50, Trained on full dataset, no deleted frames, additional transformations including colour transform. v2 trained on additional data.
 
-For behavior adjustments, edit `nozzle_net_node.py`. Familiarity with ROS and Python is recommended to ensure modifications enhance functionality.
+**resnet50_v6** 
+ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
 
-## Model Details
+**resnet50_v6_v2** 
+ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping. v2 trained on additional data.
 
-A pre-trained ResNet50 model is pivotal for analysis. Ensure the model is correctly positioned as per `nozzle_config.yaml`. Assistance with model setup is available upon request.
 
 ## Contact
 
