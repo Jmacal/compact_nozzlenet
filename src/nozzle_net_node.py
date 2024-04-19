@@ -12,14 +12,13 @@ import rospkg
 import tensorrt as trt
 import pycuda.driver as cuda
 import pycuda.autoinit
-
 import time
 
 class NozzleNet:
     def __init__(self):
         try:
             # Retrieve model name from ROS parameter server, set by the launch file
-            model_name = rospy.get_param('~model_name', 'resnet50_v0')
+            model_name = rospy.get_param('~model_name', 'resnet50_v3')
 
             # Construct the full engine path using the retrieved engine name
             model_path = os.path.join(rospkg.RosPack().get_path('compact_nozzle_net_pkg'), 'model', model_name + '.onnx.1.1.8502.GPU.FP16.engine')
@@ -31,24 +30,26 @@ class NozzleNet:
         except Exception as e:
             rospy.logerr("Failed to load TensorRT engine: {}".format(e))
             raise e
-
+   
         try:
-            if model_name in ['resnet50_v0', 'resnet50_v1', 'resnet50_v2', 'resnet50_v3']:
+            if model_name in ['resnet50_v3', 'resnet50_v3_v2']:
                 # Define image transformations
                 self.transform = transforms.Compose([
                     transforms.Resize(224),
-                    transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adjusted crop transformation
+                    transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adding crop transformation
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
                 ])
-            else:
+            elif model_name in ['resnet50_v6','resnet50_v6_v2']:
                 # Define image transformations
                 self.transform = transforms.Compose([
                     transforms.Resize(224),
-                    transforms.Lambda(lambda x: transforms.functional.crop(x, 70, 105, 224, 224)),  # Adjusted crop transformation
+                    transforms.Lambda(lambda x: transforms.functional.crop(x, 70, 105, 224, 224)),
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.4387, 0.4716, 0.4956], std=[0.1933, 0.1992, 0.2179])  # Normalization
                 ])
+            else:
+                raise ValueError("Invalid model name: {}".format(model_name))
 
         except Exception as e:
             rospy.logerr("Failed to define image transformations: {}".format(e))
