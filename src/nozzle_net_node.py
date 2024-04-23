@@ -116,6 +116,10 @@ class NozzleNet:
             transformed_img = self.transform(image_pil)
             transformed_img = transformed_img.unsqueeze(0)
 
+            # Uncomment to view transformed cropped image, adjust camera position to align nozzle with cropping
+            # cv2.imshow('Transformed Image', transformed_img.numpy().transpose(0, 2, 3, 1)[0])
+            # cv2.waitKey(1)
+
             # Transfer input data to device
             cuda.memcpy_htod(self.input_h, transformed_img.numpy().tobytes())
 
