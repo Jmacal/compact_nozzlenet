@@ -111,6 +111,11 @@ class NozzleNet:
             return
 
         try:
+
+            # Uncomment to view original image before cropping, adjust camera position to replicate positioning in reference image on compact_nozzle_net_pkg github repo
+            # cv2.imshow('Original Image', self.latest_image)
+            # cv2.waitKey(1)
+            
             # Convert image only once
             image_pil = Image.fromarray(cv2.cvtColor(self.latest_image, cv2.COLOR_BGR2RGB))
             transformed_img = self.transform(image_pil)
