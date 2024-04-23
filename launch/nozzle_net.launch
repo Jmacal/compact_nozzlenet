@@ -1,6 +1,6 @@
 <launch>
     <!-- Model argument with default value -->
-    <arg name="model_name" default="resnet50_v3" />
+    <arg name="model_name" default="resnet50_v6_v2" />
 
     <!-- Launch the NozzleNet node -->
     <node name="nozzle_net_node" pkg="compact_nozzle_net_pkg" type="nozzle_net_node.py" output="screen">
