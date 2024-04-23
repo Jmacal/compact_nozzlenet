@@ -18,7 +18,7 @@ class NozzleNet:
     def __init__(self):
         try:
             # Retrieve model name from ROS parameter server, set by the launch file
-            model_name = rospy.get_param('~model_name', 'resnet50_v3')
+            model_name = rospy.get_param('~model_name', 'resnet50_v6_v2')
 
             # Construct the full engine path using the retrieved engine name
             model_path = os.path.join(rospkg.RosPack().get_path('compact_nozzle_net_pkg'), 'model', model_name + '.onnx.1.1.8502.GPU.FP16.engine')
