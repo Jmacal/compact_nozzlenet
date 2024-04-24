@@ -74,7 +74,11 @@ ResNet50, Trained on full dataset, no deleted frames, no colour transform, impro
 **resnet50_v6_v2** 
 ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping. v2 trained on additional data.
 
+## Camera Position Reference
+
+![uncropped_nozzle](https://github.com/BucherMunicipal/compact_nozzle_net_pkg/assets/52793874/3ef77ae8-7b60-4549-876f-aefcc3f7192a)
 
 ## Contact
 
 James MacAleese, james.macaleese@buchermunicipal.net.
+
