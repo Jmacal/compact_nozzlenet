@@ -32,7 +32,7 @@ class NozzleNet:
             raise e
    
         try:
-            if model_name in ['resnet50_v6','resnet50_v6_v2']:
+            if model_name in ['resnet50_v6_v2','resnet50_v6_v3']:
                 # Define image transformations
                 self.transform = transforms.Compose([
                     transforms.Resize(224),
