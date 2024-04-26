@@ -57,22 +57,16 @@ The NozzleNet node publishes detailed information on the `/nozzle_status` topic,
    roslaunch compact_nozzle_net_pkg nozzle_net.launch model_name:=model_name
 
    ```
-   model_name options: resnet50_v3, resnet50_v3_v2, resnet50_v6, resnet50_v6_v2.
-   If no model is specified, model_name resnet50_v3 is used which points to resnet50_v3.onnx.1.1.8502.GPU.FP16.engine .
+   model_name options: resnet50_v6_v2, resnet50_v6_v3.
+   If no model is specified, model_name resnet50_v6_v2 is used which points to resnet50_v6_v2.onnx.1.1.8502.GPU.FP16.engine .
 
 ## Models
 
-**resnet50_v3** 
-ResNet50, Trained on unique frames in dataset, additional transformations including colour transform.
-
-**resnet50_v3_v2** 
-ResNet50, Trained on full dataset, no deleted frames, additional transformations including colour transform. v2 trained on additional data.
-
-**resnet50_v6** 
-ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping.
-
 **resnet50_v6_v2** 
 ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping. v2 trained on additional data.
+
+**resnet50_v6_v2** 
+ResNet50, Trained on full dataset, no deleted frames, no colour transform, improved normalisation values, increased cropping. v3 additionally trained on post visit data.
 
 ## Camera Position Reference
 

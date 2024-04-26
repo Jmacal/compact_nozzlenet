@@ -32,15 +32,7 @@ class NozzleNet:
             raise e
    
         try:
-            if model_name in ['resnet50_v3', 'resnet50_v3_v2']:
-                # Define image transformations
-                self.transform = transforms.Compose([
-                    transforms.Resize(224),
-                    transforms.Lambda(lambda x: transforms.functional.crop(x, 0, 110, 224, 224)),  # Adding crop transformation
-                    transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
-                ])
-            elif model_name in ['resnet50_v6','resnet50_v6_v2']:
+            if model_name in ['resnet50_v6','resnet50_v6_v2']:
                 # Define image transformations
                 self.transform = transforms.Compose([
                     transforms.Resize(224),
